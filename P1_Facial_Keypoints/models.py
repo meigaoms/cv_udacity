@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 # can use the below import should you choose to initialize the weights of your Net
 import torch.nn.init as I
+import math
 
 
 class Net(nn.Module):
@@ -21,12 +22,16 @@ class Net(nn.Module):
         # As an example, you've been given a convolutional layer, which you may (but don't have to) change:
         # 1 input image channel (grayscale), 32 output channels/feature maps, 5x5 square convolution kernel
         self.conv1 = nn.Conv2d(1, 32, 3, padding=1) #output size = (W-F+2P)/S + 1 = 224
+        self.batchnorm1 = nn.BatchNorm2d(32)
         self.pool1 = nn.MaxPool2d(2,2) #output size = W/S = 112
         self.conv2 = nn.Conv2d(32, 64, 3, padding=1) #output size = (W-F+2P)/S + 1 = 112
+        self.batchnorm2 = nn.BatchNorm2d(64)
         self.pool2 = nn.MaxPool2d(2, 2) #output size = W/S = 56
         self.conv3 = nn.Conv2d(64, 128, 3, padding=1) #output size = (W-F+2P)/S + 1 = 56
+        self.batchnorm3 = nn.BatchNorm2d(128)
         self.pool3 = nn.MaxPool2d(2, 2) #output size = W/S = 28
         self.conv4 = nn.Conv2d(128, 256, 3, padding=1) #output size = (W-F+2P)/S + 1 = 28
+        self.batchnorm4 = nn.BatchNorm2d(256)
         self.pool4 = nn.MaxPool2d(2, 2) #output size = W/S = 14
 
         self.fc1 = nn.Linear(256 * 14 * 14, 512)
@@ -35,7 +40,7 @@ class Net(nn.Module):
         
         ## Note that among the layers to add, consider including:
         # maxpooling layers, multiple conv layers, fully-connected layers, and other layers (such as dropout or batch normalization) to avoid overfitting
-        
+        # self.init_weights()
 
         
     def forward(self, x):
@@ -54,3 +59,11 @@ class Net(nn.Module):
         
         # a modified x, having gone through all the layers of your model, should be returned
         return x
+
+    def init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                m.weight.data.uniform_(0.0, 1.0)
+                m.bias.data.fill_(0)
+            elif isinstance(m, nn.Conv2d):
+                I.xavier_uniform(m.weight)
